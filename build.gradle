@@ -1,0 +1,69 @@
+plugins {
+    id 'java'
+    id 'maven-publish'
+    id 'com.github.johnrengelman.shadow' version '8.1.1'
+}
+
+sourceCompatibility = 1.17
+targetCompatibility = 1.17
+
+group 'com.socraticphoenix.mc.discordhook'
+version '0.0.0'
+
+repositories {
+    mavenCentral()
+    maven { url = 'https://jitpack.io' }
+}
+
+dependencies {
+    implementation("net.dv8tion:JDA:5.0.0-beta.12",
+            "com.google.code.gson:gson:2.10.1",
+            "io.github.java-diff-utils:java-diff-utils:4.12",
+            "org.apache.commons:commons-vfs2:2.9.0")
+
+    testImplementation("org.junit.jupiter:junit-jupiter:5.9.2")
+}
+
+shadowJar {
+    manifest {
+        attributes 'Main-Class': 'com.socraticphoenix.mc.discordhook.Main'
+    }
+}
+
+task ghpagesJavadocs(type: Javadoc) {
+    destinationDir = file("/docs")
+
+    source = sourceSets.main.allJava
+    classpath = configurations.runtimeClasspath
+}
+
+task javadocJar(type: Jar) {
+    from javadoc
+    archiveClassifier.set("javadoc")
+}
+
+task sourceJar(type: Jar) {
+    from sourceSets.main.allSource
+    archiveClassifier.set("source")
+}
+
+artifacts {
+    archives javadocJar, sourceJar, shadowJar
+}
+
+publishing {
+    publications {
+        mavenJava(MavenPublication) {
+            artifactId = rootProject.name
+
+            from components.java
+
+            artifact sourceJar
+            artifact javadocJar
+        }
+    }
+}
+
+test {
+    useJUnitPlatform()
+}
